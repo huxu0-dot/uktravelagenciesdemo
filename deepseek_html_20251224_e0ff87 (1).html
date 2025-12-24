@@ -1,0 +1,1594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The XYZ Travel Agency | Premier UK Tour Operator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+     crossorigin=""/>
+    <!-- Leaflet MarkerCluster CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+    <style>
+        :root {
+            --primary: #1a365d;
+            --secondary: #2d6bc9;
+            --accent: #00c9c8;
+            --gold: #d4af37;
+            --light: #f8fafc;
+            --dark: #0f172a;
+            --transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+            --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.1);
+            --shadow-sm: 0 5px 15px rgba(0, 0, 0, 0.05);
+            --border-radius: 16px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            line-height: 1.7;
+            color: #333;
+            background: #fff;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4, h5 {
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        section {
+            padding: 100px 0;
+        }
+
+        /* Header & Navigation */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+            padding: 25px 0;
+            transition: var(--transition);
+            background: rgba(26, 54, 93, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        header.scrolled {
+            padding: 15px 0;
+            background: rgba(26, 54, 93, 0.98);
+            box-shadow: var(--shadow-lg);
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 32px;
+            font-weight: 700;
+            color: white;
+            display: flex;
+            align-items: center;
+            letter-spacing: 1px;
+        }
+
+        .logo span {
+            color: var(--accent);
+            margin-left: 5px;
+        }
+
+        .logo i {
+            margin-right: 12px;
+            font-size: 28px;
+            color: var(--gold);
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+        }
+
+        .nav-links li {
+            margin-left: 40px;
+            position: relative;
+        }
+
+        .nav-links a {
+            color: white;
+            font-weight: 500;
+            font-size: 16px;
+            letter-spacing: 0.5px;
+            transition: var(--transition);
+            padding: 8px 0;
+        }
+
+        .nav-links a:hover {
+            color: var(--accent);
+        }
+
+        .nav-links li::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--accent);
+            transition: var(--transition);
+        }
+
+        .nav-links li:hover::after {
+            width: 100%;
+        }
+
+        .cta-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--accent), var(--secondary));
+            color: white;
+            padding: 16px 36px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 16px;
+            letter-spacing: 0.5px;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0 8px 25px rgba(0, 201, 200, 0.3);
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .cta-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--secondary), var(--accent));
+            transition: var(--transition);
+            z-index: -1;
+        }
+
+        .cta-button:hover::before {
+            left: 0;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(0, 201, 200, 0.4);
+        }
+
+        /* Enhanced Hero Section with Video */
+        .hero {
+            height: 100vh;
+            min-height: 800px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+            overflow: hidden;
+            margin-top: 0;
+        }
+
+        .video-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+        }
+
+        .video-background video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: brightness(0.6);
+        }
+
+        .video-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(15, 23, 42, 0.85), rgba(26, 54, 93, 0.7));
+            z-index: -1;
+        }
+
+        .hero-content {
+            max-width: 900px;
+            padding: 0 20px;
+            animation: fadeUp 1.2s ease-out 0.3s both;
+        }
+
+        .hero h1 {
+            font-size: 4.5rem;
+            margin-bottom: 1.5rem;
+            text-shadow: 2px 2px 15px rgba(0, 0, 0, 0.4);
+            line-height: 1.1;
+            letter-spacing: -0.5px;
+        }
+
+        .hero h1 span {
+            color: var(--accent);
+            position: relative;
+        }
+
+        .hero h1 span::after {
+            content: '';
+            position: absolute;
+            bottom: 5px;
+            left: 0;
+            width: 100%;
+            height: 8px;
+            background: rgba(212, 175, 55, 0.2);
+            z-index: -1;
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            margin-bottom: 3rem;
+            opacity: 0.9;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            font-weight: 300;
+            letter-spacing: 0.3px;
+        }
+
+        .hero-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .secondary-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            color: white;
+            padding: 16px 36px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 16px;
+            letter-spacing: 0.5px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .secondary-button:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: white;
+            transform: translateY(-5px);
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 24px;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(60px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0) translateX(-50%);
+            }
+            40% {
+                transform: translateY(-10px) translateX(-50%);
+            }
+            60% {
+                transform: translateY(-5px) translateX(-50%);
+            }
+        }
+
+        /* About Section */
+        .about {
+            background: var(--light);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .about::before {
+            content: '';
+            position: absolute;
+            top: -100px;
+            right: -100px;
+            width: 300px;
+            height: 300px;
+            background: var(--accent);
+            opacity: 0.05;
+            border-radius: 50%;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 80px;
+            position: relative;
+        }
+
+        .section-title h2 {
+            font-size: 3.2rem;
+            color: var(--primary);
+            display: inline-block;
+            position: relative;
+        }
+
+        .section-title h2::after {
+            content: '';
+            display: block;
+            width: 100px;
+            height: 4px;
+            background: linear-gradient(to right, var(--accent), var(--gold));
+            margin: 20px auto;
+            border-radius: 2px;
+        }
+
+        .section-subtitle {
+            font-size: 1.2rem;
+            color: #666;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .about-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 80px;
+            align-items: center;
+        }
+
+        .about-text h3 {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 25px;
+            position: relative;
+            padding-bottom: 15px;
+        }
+
+        .about-text h3::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 3px;
+            background-color: var(--accent);
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+            margin-top: 50px;
+        }
+
+        .stat {
+            text-align: center;
+            padding: 30px 20px;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+            border-top: 4px solid var(--accent);
+        }
+
+        .stat:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .stat i {
+            font-size: 2.8rem;
+            color: var(--accent);
+            margin-bottom: 15px;
+        }
+
+        .stat h4 {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        /* Services */
+        .services {
+            position: relative;
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 40px;
+        }
+
+        .service-card {
+            background: white;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+            position: relative;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .service-card:hover {
+            transform: translateY(-20px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .service-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(to right, var(--accent), var(--secondary));
+        }
+
+        .service-icon {
+            height: 220px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 4.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .service-icon::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 1%, transparent 20%);
+            opacity: 0;
+            transition: var(--transition);
+        }
+
+        .service-card:hover .service-icon::after {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .service-content {
+            padding: 35px;
+        }
+
+        .service-content h3 {
+            color: var(--primary);
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+        }
+
+        /* Enhanced Leaflet Map Section */
+        .map-section {
+            padding: 0;
+            height: 700px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #map {
+            height: 100%;
+            width: 100%;
+            z-index: 1;
+        }
+
+        .leaflet-control-attribution {
+            font-size: 10px;
+        }
+
+        .map-controls {
+            position: absolute;
+            top: 60px;
+            right: 60px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .map-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: white;
+            border: none;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            color: var(--primary);
+            font-size: 20px;
+        }
+
+        .map-btn:hover {
+            background: var(--accent);
+            color: white;
+            transform: translateY(-3px);
+        }
+
+        /* Map info panel (simpler version) */
+        .map-info {
+            position: absolute;
+            top: 60px;
+            left: 60px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px 25px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-lg);
+            max-width: 300px;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .map-info h3 {
+            color: var(--primary);
+            margin-bottom: 10px;
+            font-size: 1.5rem;
+            position: relative;
+            padding-bottom: 10px;
+        }
+
+        .map-info h3::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 40px;
+            height: 3px;
+            background: var(--accent);
+        }
+
+        .map-info p {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        /* Custom Leaflet Popup Styling */
+        .leaflet-popup-content-wrapper {
+            border-radius: 12px;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .leaflet-popup-content {
+            margin: 15px;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .leaflet-popup-content h3 {
+            color: var(--primary);
+            margin-bottom: 8px;
+            font-size: 1.2rem;
+            font-family: 'Playfair Display', serif;
+        }
+
+        .custom-popup .leaflet-popup-content-wrapper {
+            background: white;
+            color: var(--dark);
+        }
+
+        .custom-popup .leaflet-popup-tip {
+            background: white;
+        }
+
+        /* Chatbot */
+        .chatbot-container {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 1001;
+        }
+
+        .chatbot-toggle {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), var(--secondary));
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(0, 180, 179, 0.4);
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .chatbot-toggle::after {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: -5px;
+            right: -5px;
+            bottom: -5px;
+            border-radius: 50%;
+            background: rgba(0, 201, 200, 0.2);
+            z-index: -1;
+            animation: pulse 2s infinite;
+        }
+
+        .chatbot-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+
+        .chatbot-window {
+            position: absolute;
+            bottom: 90px;
+            right: 0;
+            width: 380px;
+            height: 550px;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .chatbot-header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chatbot-header h3 {
+            margin: 0;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .chatbot-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .chatbot-close:hover {
+            transform: rotate(90deg);
+        }
+
+        .chatbot-messages {
+            flex: 1;
+            padding: 25px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            background: #f9f9f9;
+        }
+
+        .message {
+            max-width: 85%;
+            padding: 15px 20px;
+            border-radius: 20px;
+            line-height: 1.5;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .bot-message {
+            align-self: flex-start;
+            background-color: white;
+            color: var(--dark);
+            border-bottom-left-radius: 5px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .user-message {
+            align-self: flex-end;
+            background: linear-gradient(135deg, var(--accent), var(--secondary));
+            color: white;
+            border-bottom-right-radius: 5px;
+            box-shadow: 0 3px 10px rgba(0, 201, 200, 0.2);
+        }
+
+        .chatbot-input {
+            display: flex;
+            padding: 20px;
+            border-top: 1px solid #eee;
+            background: white;
+        }
+
+        .chatbot-input input {
+            flex: 1;
+            padding: 15px 20px;
+            border: 1px solid #ddd;
+            border-radius: 50px;
+            outline: none;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 15px;
+            transition: var(--transition);
+        }
+
+        .chatbot-input input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(0, 201, 200, 0.2);
+        }
+
+        .chatbot-input button {
+            background: linear-gradient(135deg, var(--accent), var(--secondary));
+            color: white;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-left: 15px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 18px;
+        }
+
+        .chatbot-input button:hover {
+            transform: scale(1.05);
+        }
+
+        /* Footer */
+        footer {
+            background-color: var(--dark);
+            color: white;
+            padding: 80px 0 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(to right, var(--accent), var(--secondary));
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 50px;
+            margin-bottom: 50px;
+        }
+
+        .footer-column h3 {
+            color: white;
+            font-size: 1.6rem;
+            margin-bottom: 30px;
+            position: relative;
+            padding-bottom: 15px;
+        }
+
+        .footer-column h3::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 50px;
+            height: 3px;
+            background-color: var(--accent);
+        }
+
+        .footer-column ul {
+            list-style: none;
+        }
+
+        .footer-column ul li {
+            margin-bottom: 15px;
+        }
+
+        .footer-column ul li a {
+            transition: var(--transition);
+            display: inline-block;
+        }
+
+        .footer-column ul li a:hover {
+            color: var(--accent);
+            transform: translateX(5px);
+        }
+
+        .social-links {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .social-links a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 45px;
+            height: 45px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            transition: var(--transition);
+            font-size: 18px;
+        }
+
+        .social-links a:hover {
+            background-color: var(--accent);
+            transform: translateY(-5px);
+        }
+
+        .copyright {
+            text-align: center;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.95rem;
+            opacity: 0.7;
+        }
+
+        /* Responsive */
+        @media (max-width: 1100px) {
+            .hero h1 {
+                font-size: 3.8rem;
+            }
+            .about-content {
+                grid-template-columns: 1fr;
+                gap: 60px;
+            }
+            .map-info {
+                max-width: 280px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 3rem;
+            }
+            .hero p {
+                font-size: 1.1rem;
+            }
+            .section-title h2 {
+                font-size: 2.5rem;
+            }
+            .nav-links {
+                display: none;
+            }
+            .hero-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            .hero-buttons a {
+                width: 100%;
+                max-width: 300px;
+            }
+            .map-info {
+                position: relative;
+                top: 0;
+                left: 0;
+                margin: 20px;
+                max-width: calc(100% - 40px);
+            }
+            .map-controls {
+                top: 20px;
+                right: 20px;
+            }
+            .map-section {
+                height: 700px;
+            }
+            .chatbot-window {
+                width: 320px;
+                height: 500px;
+                right: -10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            .service-icon {
+                height: 180px;
+                font-size: 3.5rem;
+            }
+            .service-content {
+                padding: 25px;
+            }
+            .stats {
+                grid-template-columns: 1fr;
+            }
+            .map-info {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header & Navigation -->
+    <header id="header">
+        <div class="container">
+            <nav>
+                <a href="#" class="logo"><i class="fas fa-crown"></i>The <span>XYZ</span> Travel</a>
+                <ul class="nav-links">
+                    <li><a href="#home">Home</a></li>
+                    <li><a href="#about">About</a></li>
+                    <li><a href="#services">Services</a></li>
+                    <li><a href="#destinations">Destinations</a></li>
+                    <li><a href="#map-section">Interactive Map</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                </ul>
+                <a href="#contact" class="cta-button">Plan Your Journey <i class="fas fa-arrow-right"></i></a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Enhanced Hero Section with Video Banner -->
+    <section class="hero" id="home">
+        <div class="video-background">
+            <video autoplay muted loop playsinline>
+                <!-- Premium car travel video -->
+                <source src="https://assets.mixkit.co/videos/preview/mixkit-driving-on-a-winding-road-through-a-forest-20679-large.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+            <div class="video-overlay"></div>
+        </div>
+        <div class="hero-content">
+            <h1>Discover <span>Britain</span> & Beyond In Style</h1>
+            <p>Experience the UK and Europe through the eyes of our expert tour operators. From luxury escapes to cultural adventures, we craft unforgettable journeys tailored to your dreams.</p>
+            <div class="hero-buttons">
+                <a href="#services" class="cta-button">Explore Our Services <i class="fas fa-compass"></i></a>
+                <a href="#contact" class="secondary-button">Book A Consultation <i class="fas fa-calendar-alt"></i></a>
+            </div>
+        </div>
+        <a href="#about" class="scroll-indicator">
+            <i class="fas fa-chevron-down"></i>
+        </a>
+    </section>
+
+    <!-- About Section -->
+    <section class="about" id="about">
+        <div class="container">
+            <div class="section-title">
+                <h2>Why Choose XYZ Travel</h2>
+                <p class="section-subtitle">With over 25 years of excellence in crafting bespoke travel experiences across the UK and Europe</p>
+            </div>
+            <div class="about-content">
+                <div class="about-text">
+                    <h3>Redefining Travel Since 1998</h3>
+                    <p>Based in the heart of London, The XYZ Travel Agency has been at the forefront of luxury and bespoke travel across the UK, Europe, and worldwide. Our team of experts combines local knowledge with global expertise to create seamless, immersive journeys.</p>
+                    <p>We believe travel should be transformative, not just transactional. Every itinerary is meticulously planned, every detail considered, ensuring an experience that exceeds expectations and creates memories to last a lifetime.</p>
+                    <div class="stats">
+                        <div class="stat">
+                            <i class="fas fa-award"></i>
+                            <h4>25+</h4>
+                            <p>Years of Excellence</p>
+                        </div>
+                        <div class="stat">
+                            <i class="fas fa-globe-americas"></i>
+                            <h4>60+</h4>
+                            <p>Countries Covered</p>
+                        </div>
+                        <div class="stat">
+                            <i class="fas fa-smile"></i>
+                            <h4>10K+</h4>
+                            <p>Satisfied Travelers</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="about-image">
+                    <img src="https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" alt="Luxury Travel Experience" style="width:100%; border-radius: var(--border-radius); box-shadow: var(--shadow-lg);">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section class="services" id="services">
+        <div class="container">
+            <div class="section-title">
+                <h2>Our Premier Services</h2>
+                <p class="section-subtitle">Tailored experiences designed around your unique travel aspirations</p>
+            </div>
+            <div class="services-grid">
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-crown"></i>
+                    </div>
+                    <div class="service-content">
+                        <h3>Luxury UK Escapes</h3>
+                        <p>From castle stays in Scotland to gourmet tours of Cornwall, experience Britain in unparalleled style with our curated luxury itineraries.</p>
+                        <a href="#" class="cta-button" style="padding: 12px 24px; font-size: 14px; margin-top: 20px;">Discover More</a>
+                    </div>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-suitcase-rolling"></i>
+                    </div>
+                    <div class="service-content">
+                        <h3>European Cultural Tours</h3>
+                        <p>Immerse yourself in the culture, history, and beauty of Europe with our expertly guided small-group tours and private journeys.</p>
+                        <a href="#" class="cta-button" style="padding: 12px 24px; font-size: 14px; margin-top: 20px;">Explore Europe</a>
+                    </div>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-ring"></i>
+                    </div>
+                    <div class="service-content">
+                        <h3>Bespoke Weddings & Honeymoons</h3>
+                        <p>Celebrate your love story with a destination wedding or honeymoon meticulously planned by our specialist romance travel team.</p>
+                        <a href="#" class="cta-button" style="padding: 12px 24px; font-size: 14px; margin-top: 20px;">Plan Your Romance</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Leaflet Map Section -->
+    <section class="map-section" id="map-section">
+        <div class="map-info">
+            <h3><i class="fas fa-map-marked-alt"></i> Interactive Travel Map</h3>
+            <p>Explore our London office and nearby points of interest. Click markers for details.</p>
+            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                <span style="display: flex; align-items: center; font-size: 0.8rem;">
+                    <div style="width: 12px; height: 12px; background-color: #1a365d; border-radius: 50%; margin-right: 5px;"></div>
+                    Our Office
+                </span>
+                <span style="display: flex; align-items: center; font-size: 0.8rem;">
+                    <div style="width: 12px; height: 12px; background-color: #00c9c8; border-radius: 50%; margin-right: 5px;"></div>
+                    Restaurants
+                </span>
+            </div>
+        </div>
+        
+        <div class="map-controls">
+            <button class="map-btn" id="zoomIn" title="Zoom In">
+                <i class="fas fa-plus"></i>
+            </button>
+            <button class="map-btn" id="zoomOut" title="Zoom Out">
+                <i class="fas fa-minus"></i>
+            </button>
+            <button class="map-btn" id="locateLondon" title="Locate London">
+                <i class="fas fa-map-marker-alt"></i>
+            </button>
+            <button class="map-btn" id="resetView" title="Reset View">
+                <i class="fas fa-globe-europe"></i>
+            </button>
+        </div>
+        
+        <div id="map"></div>
+    </section>
+
+    <!-- AI Chatbot -->
+    <div class="chatbot-container">
+        <div class="chatbot-toggle" id="chatbotToggle">
+            <i class="fas fa-robot"></i>
+        </div>
+        <div class="chatbot-window" id="chatbotWindow">
+            <div class="chatbot-header">
+                <h3><i class="fas fa-robot"></i> XYZ Travel Assistant</h3>
+                <button class="chatbot-close" id="chatbotClose"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="chatbot-messages" id="chatbotMessages">
+                <div class="message bot-message">
+                    Hello! I'm your XYZ Travel assistant. How can I help you plan your UK or European journey today? You can ask me about destinations, visas, booking, or our services.
+                </div>
+            </div>
+            <div class="chatbot-input">
+                <input type="text" id="chatbotInput" placeholder="Ask about travel, visas, destinations...">
+                <button id="chatbotSend"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer id="contact">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-column">
+                    <h3>The XYZ Travel Agency</h3>
+                    <p>Premier travel and tour operator based in the UK, creating exceptional journeys since 1998. Your adventure begins with us.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+                <div class="footer-column">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="#home">Home</a></li>
+                        <li><a href="#about">About Us</a></li>
+                        <li><a href="#services">Services</a></li>
+                        <li><a href="#destinations">Destinations</a></li>
+                        <li><a href="#map-section">Interactive Map</a></li>
+                        <li><a href="#contact">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>Contact Info</h3>
+                    <ul>
+                        <li><i class="fas fa-map-marker-alt"></i> 123 Regent Street, London W1B 5ST</li>
+                        <li><i class="fas fa-phone"></i> +44 (0)20 7123 4567</li>
+                        <li><i class="fas fa-envelope"></i> enquiries@xyztravel.co.uk</li>
+                        <li><i class="fas fa-clock"></i> Mon-Fri: 9am-6pm, Sat: 10am-4pm</li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>Newsletter</h3>
+                    <p>Subscribe for exclusive travel offers and inspiration</p>
+                    <div style="margin-top: 20px;">
+                        <input type="email" id="newsletterEmail" placeholder="Your email address" style="width:100%; padding:12px 15px; border-radius:50px; border:1px solid rgba(255,255,255,0.2); background:rgba(255,255,255,0.1); color:white; margin-bottom:10px;">
+                        <button class="cta-button" id="subscribeBtn" style="width:100%; padding:12px; font-size:14px;">Subscribe</button>
+                    </div>
+                </div>
+            </div>
+            <div class="copyright">
+                <p>&copy; <span id="currentYear"></span> The XYZ Travel Agency. All rights reserved. | ATOL Protected 1234 | IATA Accredited</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+     crossorigin=""></script>
+    <!-- Leaflet MarkerCluster -->
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
+    <!-- JavaScript -->
+    <script>
+        // Set current year in footer
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+        // Header scroll effect
+        window.addEventListener('scroll', function() {
+            const header = document.getElementById('header');
+            if (window.scrollY > 100) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+
+        // Initialize Leaflet Map
+        let map;
+        let markers = L.markerClusterGroup();
+        let restaurantMarkers = [];
+        let currentPopup = null;
+
+        function initMap() {
+            // Create map centered on London
+            map = L.map('map', {
+                center: [51.5074, -0.1278],
+                zoom: 14,
+                zoomControl: false,
+                attributionControl: true
+            });
+
+            // Add OpenStreetMap tiles
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                maxZoom: 19,
+            }).addTo(map);
+
+            // Add zoom control with custom position
+            L.control.zoom({
+                position: 'topright'
+            }).addTo(map);
+
+            // Custom icon for XYZ Travel office
+            const xyzIcon = L.divIcon({
+                html: '<div style="background-color: #1a365d; color: white; width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 3px solid white; box-shadow: 0 0 15px rgba(0,0,0,0.3);"><i class="fas fa-crown" style="font-size: 20px;"></i></div>',
+                className: 'xyz-icon',
+                iconSize: [45, 45],
+                iconAnchor: [22.5, 45],
+                popupAnchor: [0, -45]
+            });
+
+            // XYZ Travel Agency office marker
+            const xyzOffice = L.marker([51.5121, -0.1239], { icon: xyzIcon })
+                .bindPopup(`
+                    <div class="custom-popup">
+                        <h3><i class="fas fa-crown" style="color: #d4af37;"></i> XYZ Travel Agency</h3>
+                        <p><i class="fas fa-map-marker-alt" style="color: #00c9c8;"></i> <strong>Address:</strong> 123 Regent Street, London W1B 5ST</p>
+                        <p><i class="fas fa-phone" style="color: #00c9c8;"></i> <strong>Phone:</strong> +44 (0)20 7123 4567</p>
+                        <p><i class="fas fa-envelope" style="color: #00c9c8;"></i> <strong>Email:</strong> enquiries@xyztravel.co.uk</p>
+                        <p><i class="fas fa-clock" style="color: #00c9c8;"></i> <strong>Hours:</strong> Mon-Fri: 9am-6pm, Sat: 10am-4pm</p>
+                        <p>Visit our flagship office in the heart of London's West End for personalized travel consultations.</p>
+                        <button onclick="scheduleConsultation()" style="background: linear-gradient(135deg, #00c9c8, #2d6bc9); color: white; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer; margin-top: 10px; font-family: 'Montserrat', sans-serif; width: 100%;">
+                            <i class="fas fa-calendar-alt"></i> Schedule a Consultation
+                        </button>
+                    </div>
+                `)
+                .addTo(map);
+
+            // Restaurant data
+            const restaurants = [
+                {
+                    id: 1,
+                    name: "The Ivy",
+                    lat: 51.5115,
+                    lng: -0.1265,
+                    type: "British",
+                    rating: 4.5,
+                    address: "West Street, Covent Garden, London",
+                    description: "Iconic British restaurant serving classic dishes in an elegant setting. Perfect for business lunches or special occasions.",
+                    price: "£££",
+                    icon: "fa-utensils",
+                    iconColor: "#00c9c8"
+                },
+                {
+                    id: 2,
+                    name: "Dishoom Covent Garden",
+                    lat: 51.5123,
+                    lng: -0.1231,
+                    type: "Indian",
+                    rating: 4.8,
+                    address: "Upper St Martin's Lane, London",
+                    description: "Bombay-style cafe serving authentic Indian breakfast, lunch and dinner. Famous for their black daal.",
+                    price: "££",
+                    icon: "fa-pepper-hot",
+                    iconColor: "#FF6347"
+                },
+                {
+                    id: 3,
+                    name: "Sketch (The Lecture Room)",
+                    lat: 51.5115,
+                    lng: -0.1402,
+                    type: "French",
+                    rating: 4.7,
+                    address: "Conduit Street, Mayfair, London",
+                    description: "Artistic dining experience with Michelin-starred French cuisine in a stunningly designed space.",
+                    price: "££££",
+                    icon: "fa-paint-brush",
+                    iconColor: "#9370DB"
+                },
+                {
+                    id: 4,
+                    name: "The Wolseley",
+                    lat: 51.5088,
+                    lng: -0.1384,
+                    type: "European Café",
+                    rating: 4.4,
+                    address: "Piccadilly, St. James's, London",
+                    description: "Grand European-style cafe perfect for breakfast, afternoon tea or dinner. A London institution.",
+                    price: "£££",
+                    icon: "fa-coffee",
+                    iconColor: "#8B4513"
+                },
+                {
+                    id: 5,
+                    name: "Hawksmoor Seven Dials",
+                    lat: 51.5128,
+                    lng: -0.1279,
+                    type: "Steakhouse",
+                    rating: 4.6,
+                    address: "11 Langley Street, London",
+                    description: "Premium steak and seafood restaurant in a stylish setting. Known for their dry-aged British beef.",
+                    price: "£££",
+                    icon: "fa-drumstick-bite",
+                    iconColor: "#8B0000"
+                }
+            ];
+
+            // Create restaurant markers
+            restaurants.forEach(restaurant => {
+                // Create custom icon for restaurant
+                const restaurantIcon = L.divIcon({
+                    html: `<div style="background-color: ${restaurant.iconColor}; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid white; box-shadow: 0 0 10px rgba(0,0,0,0.2);"><i class="fas ${restaurant.icon}" style="font-size: 18px;"></i></div>`,
+                    className: 'restaurant-icon',
+                    iconSize: [40, 40],
+                    iconAnchor: [20, 40],
+                    popupAnchor: [0, -40]
+                });
+                
+                // Create marker for restaurant
+                const marker = L.marker([restaurant.lat, restaurant.lng], { 
+                    icon: restaurantIcon,
+                    title: restaurant.name
+                });
+                
+                // Create popup content
+                const popupContent = `
+                    <div class="custom-popup">
+                        <h3><i class="fas ${restaurant.icon}" style="color: ${restaurant.iconColor};"></i> ${restaurant.name}</h3>
+                        <p><strong>Cuisine:</strong> ${restaurant.type}</p>
+                        <p><strong>Rating:</strong> ${restaurant.rating} ${'★'.repeat(Math.floor(restaurant.rating))}${restaurant.rating % 1 ? '½' : ''}</p>
+                        <p><strong>Price Range:</strong> ${restaurant.price}</p>
+                        <p><strong>Address:</strong> ${restaurant.address}</p>
+                        <p>${restaurant.description}</p>
+                        <div style="display: flex; gap: 10px; margin-top: 15px;">
+                            <button onclick="bookTable('${restaurant.name}')" style="flex: 1; background: linear-gradient(135deg, #00c9c8, #2d6bc9); color: white; border: none; padding: 8px 12px; border-radius: 20px; cursor: pointer; font-family: 'Montserrat', sans-serif; font-size: 0.9rem;">
+                                <i class="fas fa-calendar-alt"></i> Book Table
+                            </button>
+                            <button onclick="getDirections(${restaurant.lat}, ${restaurant.lng})" style="flex: 1; background: #f0f0f0; color: #333; border: none; padding: 8px 12px; border-radius: 20px; cursor: pointer; font-family: 'Montserrat', sans-serif; font-size: 0.9rem;">
+                                <i class="fas fa-directions"></i> Directions
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                marker.bindPopup(popupContent);
+                
+                // Add marker to cluster group
+                markers.addLayer(marker);
+                restaurantMarkers.push({
+                    marker: marker,
+                    data: restaurant
+                });
+                
+                // Add click event to marker
+                marker.on('click', function() {
+                    // Close any currently open popup
+                    if (currentPopup) {
+                        currentPopup.closePopup();
+                    }
+                    currentPopup = this;
+                });
+            });
+            
+            // Add marker cluster group to map
+            map.addLayer(markers);
+            
+            // Set initial view to show all markers
+            map.fitBounds(markers.getBounds().pad(0.1));
+            
+            // Add map control event listeners
+            document.getElementById('zoomIn').addEventListener('click', () => {
+                map.zoomIn();
+            });
+            
+            document.getElementById('zoomOut').addEventListener('click', () => {
+                map.zoomOut();
+            });
+            
+            document.getElementById('locateLondon').addEventListener('click', () => {
+                map.setView([51.5074, -0.1278], 14);
+            });
+            
+            document.getElementById('resetView').addEventListener('click', () => {
+                map.fitBounds(markers.getBounds().pad(0.1));
+            });
+        }
+
+        // Function to schedule consultation
+        function scheduleConsultation() {
+            alert("Thank you for your interest! Our travel consultant will contact you within 24 hours to schedule your personalized consultation.");
+            
+            // Log the action in chatbot
+            const chatbotMessages = document.getElementById('chatbotMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', 'bot-message');
+            messageDiv.textContent = "I see you're interested in scheduling a consultation! Our travel experts will contact you shortly to discuss your travel plans.";
+            chatbotMessages.appendChild(messageDiv);
+            chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+        }
+
+        // Function to book a table
+        function bookTable(restaurantName) {
+            alert(`Booking request for ${restaurantName} has been noted! Our concierge service will contact you to confirm your reservation.`);
+            
+            // Log the booking in chatbot
+            const chatbotMessages = document.getElementById('chatbotMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', 'bot-message');
+            messageDiv.textContent = `Great choice! ${restaurantName} is one of our recommended restaurants. Our concierge service will help you with the reservation.`;
+            chatbotMessages.appendChild(messageDiv);
+            chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+        }
+
+        // Function to get directions
+        function getDirections(lat, lng) {
+            // Open Google Maps with directions from XYZ office to the restaurant
+            const xyzOfficeLat = 51.5121;
+            const xyzOfficeLng = -0.1239;
+            const url = `https://www.google.com/maps/dir/${xyzOfficeLat},${xyzOfficeLng}/${lat},${lng}`;
+            window.open(url, '_blank');
+        }
+
+        // Initialize map when page loads
+        document.addEventListener('DOMContentLoaded', initMap);
+
+        // AI Chatbot Logic
+        const chatbotToggle = document.getElementById('chatbotToggle');
+        const chatbotWindow = document.getElementById('chatbotWindow');
+        const chatbotClose = document.getElementById('chatbotClose');
+        const chatbotSend = document.getElementById('chatbotSend');
+        const chatbotInput = document.getElementById('chatbotInput');
+        const chatbotMessages = document.getElementById('chatbotMessages');
+
+        // Toggle chatbot window
+        chatbotToggle.addEventListener('click', () => {
+            chatbotWindow.style.display = 'flex';
+            chatbotToggle.style.display = 'none';
+            chatbotInput.focus();
+        });
+
+        chatbotClose.addEventListener('click', () => {
+            chatbotWindow.style.display = 'none';
+            chatbotToggle.style.display = 'flex';
+        });
+
+        // AI Response Database
+        const travelResponses = {
+            greetings: ["Hello! How can I assist with your travel plans today?", "Hi there! Ready to explore the UK and beyond?", "Welcome to XYZ Travel! What can I help you with?", "Greetings! I'm here to help you plan your perfect journey."],
+            services: ["We offer Luxury UK Escapes, European Cultural Tours, and Bespoke Weddings & Honeymoons. Which interests you most?", "Our premier services include curated luxury journeys across Britain, immersive European tours, and destination wedding planning. Is there a specific service you'd like to know more about?"],
+            uk: ["The UK offers stunning diversity: historic London, Scottish Highlands, Welsh coasts, and Cornish villages. When are you planning to visit?", "For UK travel, consider season: summer for Scotland (Jun-Aug), spring for English countryside (Apr-May). We can plan everything from transport to exclusive experiences. Any specific region?"],
+            europe: ["Europe is our specialty! Popular itineraries include Italy's classics, Scandinavia's northern lights, or a French gastronomic tour. Any region in mind?", "European travel requires planning. Schengen visas, train passes, and local guides are things we handle. Popular destinations: Italy, France, Spain, Greece, and Scandinavia."],
+            visa: ["Visa requirements vary. UK citizens may need ETIAS for Europe from 2025. For other nationalities, we provide visa assistance. Tell me your passport country.", "We offer full visa processing service. For most European destinations from the UK, no visa is currently required for short stays under 90 days."],
+            booking: ["To book, contact our team at +44 (0)20 7123 4567 or via our contact form. For urgent inquiries, mention 'chatbot referral' for priority.", "Booking with us ensures full financial protection (ATOL 1234). Would you like me to connect you with a specialist or send a brochure?"],
+            contact: ["Our London office is at 123 Regent Street. Call +44 (0)20 7123 4567 or email enquiries@xyztravel.co.uk. We're here 9am-6pm weekdays, 10am-4pm Saturdays.", "You can also reach us via the contact form on our website. For specific agents, let me know your travel interest (luxury, Europe, weddings, etc)."],
+            map: ["Check out our interactive map! It shows our London office and nearby points of interest. You can click on markers for details and even book restaurant reservations.", "Our interactive map features our London headquarters and recommended restaurants nearby. You can get directions and book tables through our concierge service."],
+            london: ["London highlights: Buckingham Palace, Tower of London, West End shows, British Museum, Thames cruise. Our map shows our office and nearby restaurants!", "London tips: Use Oyster card for transport, book attractions in advance, explore neighborhoods like Covent Garden, Notting Hill, Camden."],
+            default: ["I'm trained on UK/Europe travel. Could you rephrase? Or ask about: visas, UK destinations, European tours, booking process, or our services.", "I'm here to help with travel queries. Try asking about popular destinations in spring, how to plan a luxury UK getaway, or about our London office."]
+        };
+
+        // Function to get AI response
+        function getAIResponse(userMessage) {
+            const msg = userMessage.toLowerCase();
+            
+            if (msg.includes('hello') || msg.includes('hi') || msg.includes('hey')) {
+                return travelResponses.greetings[Math.floor(Math.random() * travelResponses.greetings.length)];
+            } else if (msg.includes('service') || msg.includes('offer') || msg.includes('provide')) {
+                return travelResponses.services[Math.floor(Math.random() * travelResponses.services.length)];
+            } else if (msg.includes('uk') || msg.includes('britain') || msg.includes('england') || msg.includes('scotland') || msg.includes('wales')) {
+                return travelResponses.uk[Math.floor(Math.random() * travelResponses.uk.length)];
+            } else if (msg.includes('europe') || msg.includes('france') || msg.includes('italy') || msg.includes('spain') || msg.includes('greece')) {
+                return travelResponses.europe[Math.floor(Math.random() * travelResponses.europe.length)];
+            } else if (msg.includes('visa') || msg.includes('passport') || msg.includes('entry')) {
+                return travelResponses.visa[Math.floor(Math.random() * travelResponses.visa.length)];
+            } else if (msg.includes('book') || msg.includes('reservation') || msg.includes('price') || msg.includes('cost') || msg.includes('quote')) {
+                return travelResponses.booking[Math.floor(Math.random() * travelResponses.booking.length)];
+            } else if (msg.includes('contact') || msg.includes('phone') || msg.includes('email') || msg.includes('address') || msg.includes('office')) {
+                return travelResponses.contact[Math.floor(Math.random() * travelResponses.contact.length)];
+            } else if (msg.includes('map') || msg.includes('location') || msg.includes('where')) {
+                return travelResponses.map[Math.floor(Math.random() * travelResponses.map.length)];
+            } else if (msg.includes('london') || msg.includes('buckingham') || msg.includes('tower') || msg.includes('thames')) {
+                return travelResponses.london[Math.floor(Math.random() * travelResponses.london.length)];
+            } else {
+                return travelResponses.default[Math.floor(Math.random() * travelResponses.default.length)];
+            }
+        }
+
+        // Function to add message to chat
+        function addMessage(message, isUser = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message');
+            messageDiv.classList.add(isUser ? 'user-message' : 'bot-message');
+            messageDiv.textContent = message;
+            chatbotMessages.appendChild(messageDiv);
+            chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+        }
+
+        // Send message function
+        function sendMessage() {
+            const message = chatbotInput.value.trim();
+            if (message === '') return;
+            
+            addMessage(message, true);
+            chatbotInput.value = '';
+            
+            // Simulate AI thinking
+            setTimeout(() => {
+                const aiResponse = getAIResponse(message);
+                addMessage(aiResponse, false);
+            }, 800);
+        }
+
+        // Event listeners for chatbot
+        chatbotSend.addEventListener('click', sendMessage);
+        chatbotInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        // Newsletter subscription
+        document.getElementById('subscribeBtn').addEventListener('click', function() {
+            const email = document.getElementById('newsletterEmail').value;
+            if (email && email.includes('@')) {
+                alert('Thank you for subscribing to our newsletter! You\'ll receive travel inspiration and exclusive offers soon.');
+                document.getElementById('newsletterEmail').value = '';
+                
+                // Add message to chatbot
+                setTimeout(() => {
+                    addMessage("Thank you for subscribing to our newsletter! You'll receive our monthly travel inspiration guide with exclusive offers.", false);
+                }, 1000);
+            } else {
+                alert('Please enter a valid email address.');
+            }
+        });
+
+        // Initial chatbot greeting
+        setTimeout(() => {
+            addMessage("Check out our interactive map to see our London office and nearby restaurants! You can get directions and book tables directly from the map.", false);
+        }, 2000);
+    </script>
+</body>
+</html>
